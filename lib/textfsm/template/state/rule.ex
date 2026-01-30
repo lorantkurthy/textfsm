@@ -53,13 +53,13 @@ defmodule TextFSM.Template.State.Rule do
   rule_regex =
     repeat(lookahead_not(parsec(:rule_action)) |> parsec(:rule_regex_atom))
 
-  defparsec(
+  defcombinator(
     :rule,
     concat(
       ignore(string("^")),
       concat(
         rule_regex |> tag(:regex_tokens),
-        optional(parsec(:rule_action)) |> unwrap_and_tag(:action)
+        optional(parsec(:rule_action)) |> tag(:action)
       )
     )
     |> post_traverse({:lift, []})
@@ -67,7 +67,12 @@ defmodule TextFSM.Template.State.Rule do
 
   defp lift(rest, args, context, _position, _offset) do
     regex_tokens = Keyword.get(args, :regex_tokens)
-    action = Keyword.get(args, :action, %__MODULE__.Action{})
+
+    action =
+      case Keyword.get(args, :action) do
+        [action] -> action
+        _ -> %__MODULE__.Action{}
+      end
 
     rule = %__MODULE__{
       regex_tokens: regex_tokens,

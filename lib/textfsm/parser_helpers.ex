@@ -2,6 +2,11 @@ defmodule TextFSM.ParserHelpers do
   import NimbleParsec
 
   defcombinator(
+    :newline,
+    ignore(string("\n"))
+  )
+
+  defcombinator(
     :identifier,
     concat(
       ascii_string([?A..?Z], min: 1),
