@@ -9,4 +9,20 @@ defmodule TextFSM.ParserHelpers do
     )
     |> reduce({Enum, :join, []})
   )
+
+  # Printable ASCII range without characters `\` and `"`
+  normal_char =
+    ascii_char([32..33, 35..91, 93..126])
+
+  defcombinator(
+    :escaped_string,
+    repeat(
+      choice([
+        string("\\\""),
+        string("\\\\"),
+        normal_char
+      ])
+    )
+    |> reduce({List, :to_string, []})
+  )
 end
