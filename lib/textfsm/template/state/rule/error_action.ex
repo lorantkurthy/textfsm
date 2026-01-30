@@ -8,7 +8,7 @@ defmodule TextFSM.Template.State.Rule.ErrorAction do
 
   import NimbleParsec
 
-  defparsec(
+  defcombinator(
     :error_action,
     concat(
       ignore(string("Error \"")),
