@@ -15,6 +15,16 @@ defmodule TextFSM.Template do
     |> Enum.map(& &1.name)
   end
 
+  def get_rule(%__MODULE__{states: states}, state, idx) do
+    case Enum.find(states, &(&1.name == state)) do
+      nil ->
+        nil
+
+      %State{rules: rules} ->
+        Enum.at(rules, idx)
+    end
+  end
+
   import NimbleParsec
 
   newlines = parsec({TextFSM.ParserHelpers, :newlines})

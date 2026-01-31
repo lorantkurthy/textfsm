@@ -7,7 +7,7 @@ defmodule TextFSM.Template.ValueDefinition do
   @type t() :: %__MODULE__{
           name: String.t(),
           options: [option()],
-          regex: Regex.t()
+          regex: String.t()
         }
 
   import NimbleParsec
@@ -79,7 +79,7 @@ defmodule TextFSM.Template.ValueDefinition do
     value_definition = %__MODULE__{
       name: name,
       options: options,
-      regex: regex_tokens |> List.to_string() |> Regex.compile!()
+      regex: regex_tokens |> List.to_string()
     }
 
     {rest, [value_definition], context}
