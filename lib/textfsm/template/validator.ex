@@ -1,25 +1,50 @@
 defmodule TextFSM.Template.Validator do
   alias TextFSM.Template
-  alias Template.State
+  alias Template.{State, ValueDefinition}
   alias State.Rule
 
   @type result() :: :ok | {:error, String.t()}
 
-  @spec validate(TextFSM.Template.t()) :: :ok | [{:error, String.t()}]
-  def validate(%Template{states: states} = template) do
+  @spec validate(TextFSM.Template.t()) :: :ok | {:error, [String.t()]}
+  def validate(%Template{states: states, value_definitions: value_definitions} = template) do
     values_defined = Template.value_names(template)
     all_rules = Enum.flat_map(states, & &1.rules)
 
-    Enum.flat_map(
-      all_rules,
-      fn rule ->
-        result0 = validate_rule_continue_action(rule)
-        result1 = validate_rule_value_exists(values_defined, rule)
-        results = [result0, result1]
+    value_errors =
+      Enum.map(value_definitions, &validate_value_definition_options/1)
+      |> Enum.flat_map(fn
+        :ok -> []
+        {:error, msg} -> [msg]
+      end)
 
-        for {:error, _} = error <- results, do: error
-      end
-    )
+    rule_errors =
+      Enum.flat_map(
+        all_rules,
+        fn rule ->
+          result0 = validate_rule_continue_action(rule)
+          result1 = validate_rule_value_exists(values_defined, rule)
+          results = [result0, result1]
+
+          for {:error, msg} <- results, do: msg
+        end
+      )
+
+    errors = value_errors ++ rule_errors
+
+    case errors do
+      [] -> :ok
+      _ -> {:error, errors}
+    end
+  end
+
+  @spec validate_value_definition_options(ValueDefinition.t()) :: result()
+  def validate_value_definition_options(%ValueDefinition{name: name, options: options}) do
+    if :fillup in options and Enum.any?([:required, :list], &(&1 in options)) do
+      {:error,
+       "Conflicting options for value `#{name}`: Fillup is incompatible with Required or List."}
+    else
+      :ok
+    end
   end
 
   @spec validate_rule_value_exists([String.t()], Rule.t()) :: result()
