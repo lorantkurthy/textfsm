@@ -30,6 +30,9 @@ defmodule TextFSM.Template.Compiler do
             value_regex_str = value_to_regex[value_name]
             "(?<#{value_name}>#{value_regex_str})"
 
+          "$$" ->
+            ?$
+
           other ->
             other
         end
