@@ -40,6 +40,11 @@ calling `TextFSM.parse` will return:
 }
 ```
 
+## Caveats
+
+- Comments in templates are yet to be supported
+- The template parser is strict regarding how many whitespaces you use (e.g. when defining values)
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
