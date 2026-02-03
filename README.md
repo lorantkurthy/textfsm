@@ -1,5 +1,7 @@
 # TextFSM
 
+[![Hex Version](https://img.shields.io/hexpm/v/textfsm.svg)](https://hex.pm/packages/textfsm) [![Hex Docs](https://img.shields.io/badge/hex-docs-green.svg)](https://hexdocs.pm/textfsm/)
+
 TextFSM is a template-based state machine designed to parse semi-structured text (such as CLI output) into structured data.
 
 This is an Elixir implementation of the original [TextFSM](https://github.com/google/textfsm) written in Python.
