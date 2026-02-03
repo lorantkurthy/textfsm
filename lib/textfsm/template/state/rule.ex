@@ -2,6 +2,9 @@ defmodule TextFSM.Template.State.Rule do
   @enforce_keys [:regex_tokens]
   defstruct [:regex_tokens, :compiled_regex, :action]
 
+  alias __MODULE__.{Action, ErrorAction}
+  import NimbleParsec
+
   @type value_descriptor() :: {:value_descriptor, String.t()}
 
   @type regex_token() ::
@@ -11,10 +14,8 @@ defmodule TextFSM.Template.State.Rule do
   @type t() :: %__MODULE__{
           regex_tokens: [],
           compiled_regex: Regex.t(),
-          action: __MODULE__.Action.t()
+          action: Action.t() | ErrorAction.t()
         }
-
-  import NimbleParsec
 
   value_descriptor =
     concat(
@@ -44,8 +45,8 @@ defmodule TextFSM.Template.State.Rule do
     concat(
       ignore(string(" -> ")),
       choice([
-        parsec({__MODULE__.ErrorAction, :error_action}),
-        parsec({__MODULE__.Action, :rule_action})
+        parsec({ErrorAction, :error_action}),
+        parsec({Action, :rule_action})
       ])
     )
   )
@@ -71,7 +72,7 @@ defmodule TextFSM.Template.State.Rule do
     action =
       case Keyword.get(args, :action) do
         [action] -> action
-        _ -> %__MODULE__.Action{}
+        _ -> %Action{}
       end
 
     rule = %__MODULE__{
