@@ -4,6 +4,8 @@ TextFSM is a template-based state machine designed to parse semi-structured text
 
 This is an Elixir implementation of the original [TextFSM](https://github.com/google/textfsm) written in Python.
 
+This implementation uses [NimbleParsec](https://github.com/dashbitco/nimble_parsec) to parse templates.
+
 ## Demonstration
 
 Given the template:
