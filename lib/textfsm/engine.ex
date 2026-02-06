@@ -1,6 +1,6 @@
 defmodule TextFSM.Engine do
   alias TextFSM.Error
-  alias __MODULE__.{Context, Memory, MatchConstraints}
+  alias __MODULE__.{Context, Memory}
   alias TextFSM.Template
   alias Template.State
   alias State.Rule
@@ -86,11 +86,11 @@ defmodule TextFSM.Engine do
   end
 
   defp match_rule(
-         %__MODULE__{memory: %Memory{match_constraints: match_constraints} = memory},
+         %__MODULE__{memory: memory},
          %Rule{
            compiled_regex: %Regex{} = regex,
            action: %Action{record_action: record_action}
-         } = rule,
+         },
          line
        ) do
     matches = Regex.named_captures(regex, line)
@@ -100,22 +100,13 @@ defmodule TextFSM.Engine do
     else
       memory =
         Enum.reduce(matches, memory, fn {value_name, match}, acc ->
-          Memory.collect(acc, rule, value_name, match)
+          Memory.collect(acc, value_name, match)
         end)
 
       memory =
         case record_action do
           :no_record ->
-            matched_only_fillups? =
-              Enum.any?(matches, fn {value_name, _match} ->
-                MatchConstraints.fillup?(match_constraints, value_name)
-              end)
-
-            if matched_only_fillups? do
-              Memory.record_fillup_values(memory)
-            else
-              memory
-            end
+            memory
 
           :record ->
             Memory.record(memory)

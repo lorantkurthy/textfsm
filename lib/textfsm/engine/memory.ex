@@ -8,16 +8,14 @@ defmodule TextFSM.Engine.Memory do
     :key_group_to_pending_rows
   ]
 
-  alias TextFSM.{Template, Engine.MatchConstraints, StateExecutionError}
-  alias Template.{ValueDefinition, State.Rule}
+  alias TextFSM.{Template, Engine.MatchConstraints}
+  alias Template.ValueDefinition
 
   @type value_name() :: String.t()
 
   @type value() :: nil | :fillup | String.t() | [String.t()]
 
-  @type auxiliary_value() :: {:auxiliary, value()}
-
-  @type table() :: %{value_name() => [value() | auxiliary_value()]}
+  @type table() :: %{value_name() => [value()]}
 
   @type finalized_value() :: nil | String.t() | [String.t()]
 
@@ -57,10 +55,9 @@ defmodule TextFSM.Engine.Memory do
     }
   end
 
-  @spec collect(t(), Rule.t(), value_name(), match()) :: t()
+  @spec collect(t(), value_name(), match()) :: t()
   def collect(
         %__MODULE__{accumulator: accumulator, match_constraints: match_constraints} = memory,
-        %Rule{action: action},
         value_name,
         match
       ) do
@@ -68,10 +65,6 @@ defmodule TextFSM.Engine.Memory do
       cond do
         not is_nil(match) and MatchConstraints.list?(match_constraints, value_name) ->
           prepend(accumulator, value_name, match)
-
-        not is_nil(match) and MatchConstraints.fillup?(match_constraints, value_name) and
-            action.record_action != :record ->
-          {:auxiliary, match}
 
         true ->
           match
@@ -109,8 +102,8 @@ defmodule TextFSM.Engine.Memory do
 
             value =
               cond do
-                is_nil(value) and MatchConstraints.fillup?(match_constraints, value_name) ->
-                  :fillup
+                MatchConstraints.fillup?(match_constraints, value_name) ->
+                  value || :fillup
 
                 true ->
                   value
@@ -146,38 +139,6 @@ defmodule TextFSM.Engine.Memory do
         }
         |> clear()
     end
-  end
-
-  @spec record_fillup_values(t()) :: t()
-  def record_fillup_values(
-        %__MODULE__{
-          table: table,
-          accumulator: accumulator,
-          match_constraints: match_constraints
-        } = memory
-      ) do
-    if not Enum.all?(accumulator, fn {value_name, _value} ->
-         MatchConstraints.fillup?(match_constraints, value_name)
-       end) do
-      raise StateExecutionError,
-        message: "Encountered a non-Fillup value while attempting to record Fillup values."
-    end
-
-    table =
-      Map.new(
-        table,
-        fn {value_name, column} ->
-          value = Map.get(accumulator, value_name)
-
-          if is_nil(value) do
-            {value_name, column}
-          else
-            {value_name, [value | column]}
-          end
-        end
-      )
-
-    %{memory | table: table} |> clear()
   end
 
   @spec clear(t()) :: t()
@@ -371,9 +332,6 @@ defmodule TextFSM.Engine.Memory do
           case value do
             :fillup ->
               {fillup_value, [fillup_value | column]}
-
-            {:auxiliary, fillup_value} ->
-              {fillup_value, column}
 
             fillup_value ->
               {fillup_value, [fillup_value | column]}
