@@ -25,10 +25,13 @@ defmodule TextFSM.Template.Validator do
         end
       )
 
+    state_errors =
+      [validate_start_state_exists(states)]
+
     state_warnings =
       Enum.map(states, &validate_eof_state/1)
 
-    errors_and_warnings = value_errors ++ rule_errors ++ state_warnings
+    errors_and_warnings = value_errors ++ rule_errors ++ state_errors ++ state_warnings
 
     case errors_and_warnings |> Enum.reject(&(&1 == :ok)) do
       [] -> :ok
@@ -72,6 +75,15 @@ defmodule TextFSM.Template.Validator do
   end
 
   def validate_rule_continue_action(_), do: :ok
+
+  @spec validate_start_state_exists([State.t()]) :: result()
+  def validate_start_state_exists(states) do
+    if Enum.any?(states, &(&1.name == "Start")) do
+      :ok
+    else
+      {:error, "Template must contain a Start state."}
+    end
+  end
 
   @spec validate_eof_state(State.t()) :: :ok | {:warning, String.t()}
   def validate_eof_state(%State{name: "EOF", rules: rules}) when length(rules) > 0 do
