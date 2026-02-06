@@ -3,19 +3,17 @@ defmodule TextFSM.Template.Validator do
   alias Template.{State, ValueDefinition}
   alias State.Rule
 
-  @type result() :: :ok | {:error, String.t()}
+  @type error_or_warning() :: {:error, String.t()} | {:warning, String.t()}
 
-  @spec validate(TextFSM.Template.t()) :: :ok | {:error, [String.t()]}
+  @type result() :: :ok | [error_or_warning()]
+
+  @spec validate(TextFSM.Template.t()) :: result()
   def validate(%Template{states: states, value_definitions: value_definitions} = template) do
     values_defined = Template.value_names(template)
     all_rules = Enum.flat_map(states, & &1.rules)
 
     value_errors =
       Enum.map(value_definitions, &validate_value_definition_options/1)
-      |> Enum.flat_map(fn
-        :ok -> []
-        {:error, msg} -> [msg]
-      end)
 
     rule_errors =
       Enum.flat_map(
@@ -23,17 +21,18 @@ defmodule TextFSM.Template.Validator do
         fn rule ->
           result0 = validate_rule_continue_action(rule)
           result1 = validate_rule_value_exists(values_defined, rule)
-          results = [result0, result1]
-
-          for {:error, msg} <- results, do: msg
+          [result0, result1]
         end
       )
 
-    errors = value_errors ++ rule_errors
+    state_warnings =
+      Enum.map(states, &validate_eof_state/1)
 
-    case errors do
+    errors_and_warnings = value_errors ++ rule_errors ++ state_warnings
+
+    case errors_and_warnings |> Enum.reject(&(&1 == :ok)) do
       [] -> :ok
-      _ -> {:error, errors}
+      _ -> errors_and_warnings
     end
   end
 
@@ -73,4 +72,11 @@ defmodule TextFSM.Template.Validator do
   end
 
   def validate_rule_continue_action(_), do: :ok
+
+  @spec validate_eof_state(State.t()) :: :ok | {:warning, String.t()}
+  def validate_eof_state(%State{name: "EOF", rules: rules}) when length(rules) > 0 do
+    {:warning, "The EOF state does not accept rules and they will be ignored."}
+  end
+
+  def validate_eof_state(_), do: :ok
 end
