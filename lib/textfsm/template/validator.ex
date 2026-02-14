@@ -35,7 +35,7 @@ defmodule TextFSM.Template.Validator do
 
     case errors_and_warnings |> Enum.reject(&(&1 == :ok)) do
       [] -> :ok
-      _ -> errors_and_warnings
+      errors_and_warnings -> errors_and_warnings
     end
   end
 
