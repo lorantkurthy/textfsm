@@ -29,7 +29,8 @@ defmodule TextFSM.Template.State.Rule do
 
   # Printable ASCII range without the `$` character
   rule_regex_char =
-    ascii_char([32..35, 37..126])
+    utf8_char([not: 0..31, not: ?$, not: 127])
+    # ascii_char([32..35, 37..126])
 
   defcombinatorp(
     :rule_regex_atom,
