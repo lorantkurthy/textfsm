@@ -54,7 +54,7 @@ defmodule TextFSM.Template.ValueDefinition do
       concat(
         repeat(
           lookahead_not(concat(string(")"), choice([eos(), newline])))
-          |> ascii_char([32..126])
+          |> parsec({TextFSM.ParserHelpers, :regex_char})
         ),
         ignore(string(")"))
       )

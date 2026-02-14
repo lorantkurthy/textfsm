@@ -27,17 +27,12 @@ defmodule TextFSM.Template.State.Rule do
     )
     |> unwrap_and_tag(:value_descriptor)
 
-  # Printable ASCII range without the `$` character
-  rule_regex_char =
-    utf8_char([not: 0..31, not: ?$, not: 127])
-    # ascii_char([32..35, 37..126])
-
   defcombinatorp(
     :rule_regex_atom,
     choice([
       string("$$"),
       value_descriptor,
-      rule_regex_char
+      parsec({TextFSM.ParserHelpers, :rule_regex_char})
     ])
   )
 

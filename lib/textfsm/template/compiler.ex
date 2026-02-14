@@ -16,21 +16,25 @@ defmodule TextFSM.Template.Compiler do
   ## Parameters
 
   * `template` - A `TextFSM.Template` struct.
+  * `modifiers` - Regex modifiers, see `Regex` module.
 
   ## Returns
 
   * `TextFSM.Template` - A compiled template struct.
   """
-  @spec compile(Template.t()) :: Template.t()
-  def compile(%Template{value_definitions: value_definitions, states: states} = template) do
+  @spec compile(Template.t(), String.t()) :: Template.t()
+  def compile(
+        %Template{value_definitions: value_definitions, states: states} = template,
+        modifiers \\ ""
+      ) do
     value_to_regex = Map.new(value_definitions, &{&1.name, &1.regex})
-    compiled_states = Enum.map(states, &compile_state(value_to_regex, &1))
+    compiled_states = Enum.map(states, &compile_state(value_to_regex, &1, modifiers))
 
     %{template | states: compiled_states}
   end
 
-  defp compile_state(value_to_regex, %State{rules: rules} = state) do
-    compiled_rules = Enum.map(rules, &compile_rule(value_to_regex, &1))
+  defp compile_state(value_to_regex, %State{rules: rules} = state, modifiers) do
+    compiled_rules = Enum.map(rules, &compile_rule(value_to_regex, &1, modifiers))
     %{state | rules: compiled_rules}
   end
 
@@ -38,7 +42,8 @@ defmodule TextFSM.Template.Compiler do
          value_to_regex,
          %Rule{
            regex_tokens: regex_tokens
-         } = rule
+         } = rule,
+         modifiers
        ) do
     inlined_regex_tokens =
       Enum.map(
@@ -58,6 +63,6 @@ defmodule TextFSM.Template.Compiler do
 
     regex_str = List.to_string(inlined_regex_tokens)
 
-    %{rule | compiled_regex: Regex.compile!(regex_str)}
+    %{rule | compiled_regex: Regex.compile!(regex_str, modifiers)}
   end
 end

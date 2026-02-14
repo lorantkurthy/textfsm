@@ -71,6 +71,7 @@ defmodule TextFSM do
   ## Parameters
 
   * `template` - A string containing the TextFSM template definition.
+  * `modifiers` - Regex modifiers, see `Regex` module.
 
   ## Returns
 
@@ -78,11 +79,12 @@ defmodule TextFSM do
   * `{:error, reason, rest, context, line, byte_offset}` - If the template syntax is invalid.
   * `{:error, [messages]}` - If the template fails validation.
   """
-  @spec parse_template(binary()) :: {:ok, Template.t()} | parse_error() | [validation_message()]
-  def parse_template(template) do
+  @spec parse_template(binary(), String.t()) ::
+          {:ok, Template.t()} | parse_error() | [validation_message()]
+  def parse_template(template, modifiers \\ "") do
     with {:ok, [template], _, _, _, _} <- Template.template(template),
          :ok <- Template.Validator.validate(template) do
-      {:ok, template |> Template.Compiler.compile()}
+      {:ok, template |> Template.Compiler.compile(modifiers)}
     else
       {:error, reason, rest, context, line, byte_offset} ->
         {:error, reason, rest, context, line, byte_offset}
@@ -99,15 +101,17 @@ defmodule TextFSM do
 
   * `template` - A string containing the TextFSM template.
   * `text` - The input text to be parsed.
+  * `modifiers` - Regex modifiers, see `Regex` module.
 
   ## Returns
 
   * `{:ok, table}` - A column-oriented table represented as a map from value names to columns.
   * `{:error, ...}` - If parsing of the TextFSM template fails. See `parse_template/1` for more details.
   """
-  @spec parse(binary(), binary()) :: {:ok, table()} | parse_error() | [validation_message()]
-  def parse(template, text) do
-    with {:ok, template} <- parse_template(template),
+  @spec parse(binary(), binary(), String.t()) ::
+          {:ok, table()} | parse_error() | [validation_message()]
+  def parse(template, text, modifiers \\ "") do
+    with {:ok, template} <- parse_template(template, modifiers),
          engine = Engine.new(template, text) do
       {:ok, Engine.run(engine)}
     else

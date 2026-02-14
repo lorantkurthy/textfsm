@@ -25,6 +25,18 @@ defmodule TextFSM.ParserHelpers do
     |> reduce({Enum, :join, []})
   )
 
+  # Printable Unicode range without the character `$`
+  defcombinator(
+    :rule_regex_char,
+    utf8_char([0x20..0x23, 0x25..0x7E, 0xA0..0xD7FF, 0xE000..0xFFFD, 0x10000..0x10FFFF])
+  )
+
+  # Printable Unicode range
+  defcombinator(
+    :regex_char,
+    utf8_char([0x20..0x7E, 0xA0..0xD7FF, 0xE000..0xFFFD, 0x10000..0x10FFFF])
+  )
+
   # Printable ASCII range without characters `\` and `"`
   normal_char =
     ascii_char([32..33, 35..91, 93..126])
