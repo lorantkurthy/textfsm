@@ -1,6 +1,6 @@
 # TextFSM
 
-[![Hex Version](https://img.shields.io/hexpm/v/textfsm.svg)](https://hex.pm/packages/textfsm) [![Hex Docs](https://img.shields.io/badge/hex-docs-green.svg)](https://hexdocs.pm/textfsm/)
+[![Hex Version](https://img.shields.io/hexpm/v/textfsm.svg)](https://hex.pm/packages/textfsm) [![Hex Docs](https://img.shields.io/badge/hex-docs-green.svg)](https://hexdocs.pm/textfsm/) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/amitbashan/textfsm)
 
 TextFSM is a template-based state machine designed to parse semi-structured text (such as CLI output) into structured data.
 
